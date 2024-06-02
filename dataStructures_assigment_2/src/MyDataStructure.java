@@ -1,4 +1,3 @@
-import java.util.LinkedList;
 
 public class MyDataStructure {
     /*
@@ -9,7 +8,8 @@ public class MyDataStructure {
      * 	-	basic arrays
      * 	-	primitive variables
      */
-    private final MyAVLTree<Product>[] AVList;
+    private MyAVLTree<Product> ZeroTree;
+    private MyAVLTree<Product> OneTo5Tree;
     private MyLinkedList<Product> ZeroLinklist;
     private final int[] productlist;
 
@@ -17,10 +17,8 @@ public class MyDataStructure {
      * This function is the Init function.
      */
     public MyDataStructure() {
-        this.AVList = new MyAVLTree[6];
-        for (int i = 0; i < 6; i++) {
-            AVList[i] = new MyAVLTree<>();
-        }
+        this.ZeroTree = new MyAVLTree<>();
+        this.OneTo5Tree = new MyAVLTree<>();
         this.productlist = new int[6];
         this.ZeroLinklist = new MyLinkedList<>();
     }
@@ -32,29 +30,35 @@ public class MyDataStructure {
             Link<Product> link = new Link<>(id, prod);
             node.setLink(link);
             ZeroLinklist.insert(link);
+            ZeroTree.insert(node);
+        } else {
+            OneTo5Tree.insert(node);
         }
-        AVList[quality].insert(node);
         productlist[quality]++;
     }
 
     public void delete(int id) {
         TreeNode<Product> toremove = null;
-        for (int i = 0; i < 6 & toremove == null; i++) {
-            toremove = AVList[i].search(id);
-        }
+        toremove = OneTo5Tree.search(id);
         if (toremove != null) {
-            int quality = toremove.satelliteData().quality();
-            if (quality == 0) {
+            productlist[toremove.satelliteData().quality()]--;
+            OneTo5Tree.delete(toremove);
+        }
+        else {
+            toremove = ZeroTree.search(id);
+            if (toremove != null){
                 ZeroLinklist.delete(toremove.getlink());
+                ZeroTree.delete(toremove);
+                productlist[0]--;
             }
-            AVList[quality].delete(toremove);
-            productlist[quality]--;
         }
     }
 
     public int medianQuality() {
         int productnum = countProducts();
-        if (productnum == 0){return -1;}
+        if (productnum == 0) {
+            return -1;
+        }
         int median;
         if (productnum % 2 == 0) {
             median = productnum / 2;
@@ -76,7 +80,7 @@ public class MyDataStructure {
     public double avgQuality() {
         int sum = qualitySum();
         int productnum = countProducts();
-        if (productnum == 0){
+        if (productnum == 0) {
             return -1;
         }
         return (double) sum / productnum;
@@ -85,18 +89,20 @@ public class MyDataStructure {
     public MyLinkedList<Product> junkWorst() {
         MyLinkedList<Product> output = ZeroLinklist;
         ZeroLinklist = new MyLinkedList<>();
-        AVList[0] = new MyAVLTree<>();
+        ZeroTree = new MyAVLTree<>();
         productlist[0] = 0;
         return output;
     }
-    private int countProducts(){
+
+    private int countProducts() {
         int productnum = 0;
         for (int i = 0; i < 6; i++) {
             productnum = productnum + productlist[i];
         }
         return productnum;
     }
-    public int qualitySum(){
+
+    public int qualitySum() {
         int sum = 0;
         for (int i = 0; i < 6; i++) {
             sum = sum + (productlist[i] * i);
